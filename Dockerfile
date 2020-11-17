@@ -1,4 +1,13 @@
-FROM harpya/phalcon_xdebug:0.0.1
+FROM ubuntu AS stage1
+
+RUN apt-get update && apt-get install -y git \
+    && cd /root \
+    && git clone https://github.com/Harpya/identity-provider.git ./tmp \
+    && cd tmp && git checkout master \
+    && mkdir -p /root/tmp/app/var \
+    && cd ..
+
+FROM harpya/phalcon_xdebug:0.0.1 AS stage2
 
 LABEL AUTHOR="Eduardo Luz <eduardo@eduardo-luz.com>"
 LABEL PROJECT="Harpya <https://www.harpya.net>"
@@ -7,7 +16,7 @@ WORKDIR /var/www/html
 
 ARG CACHEBUST=1
 
-COPY ./tmp/app/ /var/www/html/
+COPY --from=stage1 /root/tmp/app/ /var/www/html/
 # COPY ./sample-application-ip/app/vendor/harpya /srv/app/lib
 COPY startup.sh /root
 
